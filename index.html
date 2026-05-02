@@ -110,6 +110,29 @@ body{font-family:'DM Sans',sans-serif;background:radial-gradient(ellipse at 50% 
 .upc .udel{position:absolute;top:6px;right:6px;background:rgba(226,68,68,.75);border:none;color:#fff;width:22px;height:22px;border-radius:50%;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;z-index:2;transition:background .2s}
 .upc .udel:hover{background:rgba(226,68,68,1)}
 .upc .slide-badge{position:absolute;top:6px;left:6px;background:rgba(2,128,144,.85);color:#fff;font-size:9px;font-weight:700;padding:2px 7px;border-radius:8px;z-index:2;letter-spacing:.05em}
+/* Quote picker modal */
+.qpbk{display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);backdrop-filter:blur(6px);z-index:1100;align-items:flex-end;justify-content:center}
+.qpbk.open{display:flex}
+.qpmodal{background:var(--sf);border-radius:24px 24px 0 0;padding:0;width:100%;max-width:375px;border-top:1px solid var(--bd);max-height:88vh;display:flex;flex-direction:column;overflow:hidden}
+.qpthumb{width:100%;height:140px;object-fit:cover;display:block}
+.qpbody{padding:16px 20px 20px;display:flex;flex-direction:column;flex:1;overflow:hidden}
+.qpbody h3{font-size:16px;color:var(--tx);margin-bottom:12px}
+.qptabs{display:flex;gap:6px;margin-bottom:14px}
+.qptab{flex:1;padding:9px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;border:1px solid var(--bd);background:var(--cd);color:var(--mu);font-family:'DM Sans',sans-serif;transition:all .2s}
+.qptab.a{background:var(--t);border-color:var(--t);color:#fff}
+.qppanel{display:none;flex:1;overflow-y:auto;flex-direction:column}
+.qppanel.a{display:flex}
+.qppanel textarea,.qppanel input{width:100%;background:var(--cd);border:1px solid var(--bd);color:var(--tx);border-radius:12px;padding:12px 14px;font-size:14px;font-family:'DM Sans',sans-serif;margin-bottom:10px;outline:none;transition:border-color .2s;box-sizing:border-box}
+.qppanel textarea{resize:none;height:90px;line-height:1.5}
+.qppanel textarea:focus,.qppanel input:focus{border-color:var(--t)}
+.qplist{display:flex;flex-direction:column;gap:8px;padding-bottom:4px}
+.qpitem{background:var(--cd);border:1.5px solid var(--bd);border-radius:12px;padding:12px 14px;cursor:pointer;transition:all .2s}
+.qpitem:hover,.qpitem.a{border-color:var(--t);background:rgba(2,128,144,.1)}
+.qpitem .qt{font-size:13px;color:var(--tx);font-style:italic;line-height:1.45;margin-bottom:4px}
+.qpitem .qa{font-size:11px;color:var(--mu)}
+.qpbtns{display:flex;gap:10px;margin-top:14px;flex-shrink:0}
+.qpbtns .bc{flex:1;padding:13px;background:var(--cd);border:1px solid var(--bd);color:var(--tx);border-radius:14px;font-size:14px;cursor:pointer;font-family:'DM Sans',sans-serif}
+.qpbtns .ba{flex:2;padding:13px;background:var(--t);border:none;color:#fff;border-radius:14px;font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif}
 </style>
 </head>
 <body>
@@ -182,6 +205,32 @@ body{font-family:'DM Sans',sans-serif;background:radial-gradient(ellipse at 50% 
     <div class="fp"><div class="d"></div>SQLite On-Device</div>
     <div class="fp"><div class="d"></div>5 Photo Categories</div>
     <div class="fp"><div class="d"></div>Fully Offline</div>
+  </div>
+</div>
+<!-- Quote Picker for uploaded photos -->
+<div class="qpbk" id="qpModal">
+  <div class="qpmodal">
+    <img class="qpthumb" id="qpThumb" src="" alt="preview">
+    <div class="qpbody">
+      <h3>Choose a quote for this photo</h3>
+      <div class="qptabs">
+        <button class="qptab a" onclick="qpTab('write',this)">✏️ Write One</button>
+        <button class="qptab" onclick="qpTab('pick',this)">📚 Pick from Library</button>
+      </div>
+      <!-- Write panel -->
+      <div class="qppanel a" id="qpPanelWrite">
+        <textarea id="qpText" placeholder="Enter your quote…"></textarea>
+        <input id="qpAuthor" type="text" placeholder="Author name (optional)">
+      </div>
+      <!-- Pick panel -->
+      <div class="qppanel" id="qpPanelPick">
+        <div class="qplist" id="qpList"></div>
+      </div>
+      <div class="qpbtns">
+        <button class="bc" onclick="qpSkip()">Skip</button>
+        <button class="ba" onclick="qpSave()">Save Quote</button>
+      </div>
+    </div>
   </div>
 </div>
 <button class="fab" id="fab" style="display:none" onclick="openM()">+</button>
@@ -374,7 +423,7 @@ function renderLib(){
     // Uploaded photos section
     if(UPLOADED.length){
       html+=`<div class="slbl">Your Uploads (${UPLOADED.length})</div><div class="ugrid">`;
-      html+=UPLOADED.map(u=>`<div class="upc"><img src="${u.src}" alt="${u.name}"><span class="slide-badge">IN SLIDESHOW</span><span>${u.name}</span><button class="udel" onclick="delUploaded(${u.id})">×</button></div>`).join('');
+      html+=UPLOADED.map(u=>`<div class="upc"><img src="${u.src}" alt="${u.name}"><span class="slide-badge">IN SLIDESHOW</span><span title="${u.quote}">${u.name}</span><button class="udel" onclick="delUploaded(${u.id})">×</button></div>`).join('');
       html+=`</div>`;
     }
     // Built-in categories
@@ -390,35 +439,83 @@ function renderLib(){
 
 /* ── Image Upload ── */
 let UPLOADED=[],uid=1;
+let _uploadQueue=[],_currentUpload=null,_qpPickedId=null;
+
 function handleUpload(e){
-  const files=[...e.target.files];
+  const files=[...e.target.files].filter(f=>f.type.startsWith('image/'));
   if(!files.length)return;
-  let loaded=0;
+  let pending=files.length,readFiles=[];
   files.forEach(file=>{
-    if(!file.type.startsWith('image/'))return;
     const reader=new FileReader();
     reader.onload=ev=>{
-      const id=uid++;
-      const name=file.name.replace(/\.[^.]+$/,'').slice(0,18);
-      UPLOADED.push({id,src:ev.target.result,name,file:file.name});
-      // Add to slideshow slides
-      SLIDES.push({cat:'My Photos',type:'upload',uploadId:id,quote:'Your captured moment.',author:'You',src:ev.target.result});
-      loaded++;
-      if(loaded===files.length){
-        renderLib();
-        renderSlide();
-        startT();
-        toast(`${loaded} photo${loaded>1?'s':''} added to slideshow!`);
-      }
+      readFiles.push({src:ev.target.result,name:file.name.replace(/\.[^.]+$/,'').slice(0,18),file:file.name});
+      if(--pending===0){_uploadQueue.push(...readFiles);processQueue();}
     };
     reader.readAsDataURL(file);
   });
   e.target.value='';
 }
+
+function processQueue(){
+  if(!_uploadQueue.length)return;
+  _currentUpload=_uploadQueue.shift();
+  _qpPickedId=null;
+  // Reset modal
+  document.getElementById('qpThumb').src=_currentUpload.src;
+  document.getElementById('qpText').value='';
+  document.getElementById('qpAuthor').value='';
+  // Populate pick list
+  const list=document.getElementById('qpList');
+  list.innerHTML=QUOTES.map(q=>`<div class="qpitem" id="qpi-${q.id}" onclick="qpPick(${q.id})"><div class="qt">"${q.text}"</div><div class="qa">— ${q.author}</div></div>`).join('');
+  // Reset tabs to Write
+  qpTab('write',document.querySelector('.qptab'));
+  document.getElementById('qpModal').classList.add('open');
+}
+
+function qpTab(panel,btn){
+  document.querySelectorAll('.qptab').forEach(b=>b.classList.remove('a'));
+  btn.classList.add('a');
+  document.getElementById('qpPanelWrite').classList.toggle('a',panel==='write');
+  document.getElementById('qpPanelPick').classList.toggle('a',panel==='pick');
+}
+
+function qpPick(id){
+  _qpPickedId=id;
+  document.querySelectorAll('.qpitem').forEach(el=>el.classList.remove('a'));
+  const el=document.getElementById('qpi-'+id);
+  if(el){el.classList.add('a');el.scrollIntoView({block:'nearest'});}
+}
+
+function qpSave(){
+  let quote,author;
+  const writePanel=document.getElementById('qpPanelWrite');
+  if(writePanel.classList.contains('a')){
+    quote=document.getElementById('qpText').value.trim();
+    author=document.getElementById('qpAuthor').value.trim()||'You';
+    if(!quote){toast('Please enter a quote first');return;}
+  } else {
+    if(!_qpPickedId){toast('Please select a quote');return;}
+    const q=QUOTES.find(q=>q.id===_qpPickedId);
+    quote=q.text;author=q.author;
+  }
+  _commitUpload(quote,author);
+}
+
+function qpSkip(){_commitUpload('Your captured moment.','You');}
+
+function _commitUpload(quote,author){
+  const id=uid++;
+  UPLOADED.push({id,src:_currentUpload.src,name:_currentUpload.name,quote,author});
+  SLIDES.push({cat:'My Photos',type:'upload',uploadId:id,quote,author,src:_currentUpload.src});
+  document.getElementById('qpModal').classList.remove('open');
+  _currentUpload=null;
+  renderLib();renderSlide();startT();
+  if(_uploadQueue.length){setTimeout(processQueue,300);}
+  else{toast('Photo added to slideshow!');}
+}
+
 function delUploaded(id){
   UPLOADED=UPLOADED.filter(u=>u.id!==id);
-  // Remove from slides too
-  const before=SLIDES.length;
   for(let i=SLIDES.length-1;i>=0;i--){if(SLIDES[i].type==='upload'&&SLIDES[i].uploadId===id)SLIDES.splice(i,1);}
   if(cur>=SLIDES.length)cur=0;
   renderLib();renderSlide();startT();
