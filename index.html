@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Avengers Assembly — Mobile App Prototype</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--t:#028090;--td:#015f6b;--dk:#0d1117;--sf:#161b22;--cd:#21262d;--bd:#30363d;--tx:#e6edf3;--mu:#8b949e}
+body{font-family:'DM Sans',sans-serif;background:radial-gradient(ellipse at 50% 0%,#0d2030 0%,#080c10 60%);min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:2rem 1rem 5rem;color:var(--tx)}
+.hdr{text-align:center;margin-bottom:2.5rem}
+.badge{display:inline-block;background:rgba(2,128,144,.15);border:1px solid rgba(2,128,144,.35);color:#4ecdc4;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:4px 16px;border-radius:20px;margin-bottom:.9rem}
+.hdr h1{font-family:'DM Serif Display',serif;font-size:clamp(2rem,5vw,3.2rem);color:#fff;letter-spacing:-.02em;line-height:1.1}
+.hdr h1 span{color:var(--t)}
+.hdr p{color:var(--mu);font-size:13px;margin-top:.4rem}
+.pwrap{display:flex;flex-direction:column;align-items:center;gap:1rem}
+.phone{width:375px;height:780px;background:#000;border-radius:44px;border:2px solid #3a3a3a;overflow:hidden;position:relative;display:flex;flex-direction:column;box-shadow:0 0 0 1px #1a1a1a inset,0 50px 120px rgba(0,0,0,.9),0 0 80px rgba(2,128,144,.06)}
+.notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:120px;height:28px;background:#000;border-radius:0 0 18px 18px;z-index:100}
+.screen{display:none;flex-direction:column;flex:1;overflow:hidden;background:var(--dk)}
+.screen.active{display:flex}
+.sbar{display:flex;justify-content:space-between;align-items:center;padding:36px 22px 6px;font-size:12px;font-weight:600;color:#fff;position:absolute;top:0;left:0;right:0;z-index:50;background:linear-gradient(to bottom,rgba(0,0,0,.5),transparent);pointer-events:none}
+.sbr{display:flex;gap:5px;align-items:center;font-size:11px}
+.sbg{flex:1;position:relative;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end}
+.sbc{position:absolute;inset:0;width:100%;height:100%}
+.sbo{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.88) 0%,rgba(0,0,0,.2) 55%,transparent 100%)}
+.sbn{position:relative;z-index:10;padding:0 24px 18px}
+.scat{display:inline-block;background:rgba(255,255,255,.14);backdrop-filter:blur(8px);color:#fff;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:5px 12px;border-radius:20px;margin-bottom:12px;border:1px solid rgba(255,255,255,.18)}
+.sq{font-family:'DM Serif Display',serif;font-style:italic;font-size:21px;line-height:1.38;color:#fff;margin-bottom:12px}
+.sa{font-size:13px;color:rgba(255,255,255,.68)}
+.sa::before{content:"— "}
+.dots{display:flex;gap:5px;justify-content:center;padding:10px 0;background:rgba(0,0,0,.45);position:relative;z-index:10}
+.dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.3);transition:all .3s;cursor:pointer}
+.dot.a{background:#fff;width:20px;border-radius:3px}
+.ctrls{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;background:rgba(10,14,20,.75);backdrop-filter:blur(12px);position:relative;z-index:10;gap:8px}
+.cb{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.14);color:#fff;border-radius:50%;width:40px;height:40px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:17px;transition:background .2s;flex-shrink:0}
+.cb:hover{background:rgba(255,255,255,.2)}
+.cb.on{background:var(--t);border-color:var(--t)}
+.mlbl{font-size:11px;color:var(--mu);text-align:center;flex:1}
+.mlbl strong{color:var(--tx);display:block;font-size:13px}
+.bnav{display:flex;background:rgba(10,14,20,.97);backdrop-filter:blur(20px);border-top:1px solid var(--bd);padding:8px 0 20px;z-index:200}
+.ni{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:6px 0;transition:color .2s;color:var(--mu);font-size:10px;font-weight:500}
+.ni.a{color:var(--t)}
+.ni-ic{font-size:18px;line-height:1}
+.shdr{padding:52px 20px 14px;background:var(--dk)}
+.stitle{font-family:'DM Serif Display',serif;font-size:26px;color:var(--tx);margin-bottom:3px}
+.ssub{font-size:13px;color:var(--mu)}
+.tabs{display:flex;padding:0 20px;background:var(--dk);border-bottom:1px solid var(--bd)}
+.tab{padding:10px 16px;font-size:14px;font-weight:500;color:var(--mu);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s}
+.tab.a{color:var(--t);border-bottom-color:var(--t)}
+.ls{flex:1;overflow-y:auto;padding:16px 20px;background:var(--dk)}
+.ls::-webkit-scrollbar{width:3px}
+.ls::-webkit-scrollbar-thumb{background:var(--bd);border-radius:2px}
+.slbl{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--mu);margin:16px 0 10px}
+.slbl:first-child{margin-top:0}
+.pgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px}
+.pc{border-radius:14px;height:90px;position:relative;overflow:hidden;cursor:pointer;transition:transform .2s;display:flex;align-items:flex-end;padding:10px;font-size:12px;font-weight:600;color:#fff}
+.pc:hover{transform:scale(1.02)}
+.pc canvas{position:absolute;inset:0;width:100%;height:100%}
+.pc::after{content:'';position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.65),transparent)}
+.pc span{position:relative;z-index:1}
+.pc .cnt{position:absolute;top:8px;right:8px;background:rgba(0,0,0,.5);border-radius:10px;padding:2px 8px;font-size:10px;font-weight:500;z-index:1}
+.qi{background:var(--cd);border:1px solid var(--bd);border-radius:14px;padding:14px 16px;margin-bottom:10px;position:relative}
+.qcat{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--t);margin-bottom:6px}
+.qtxt{font-size:14px;line-height:1.5;color:var(--tx);font-style:italic}
+.qauth{font-size:12px;color:var(--mu);margin-top:6px}
+.qdel{position:absolute;top:12px;right:12px;background:rgba(226,68,68,.15);border:none;color:#e24444;width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:background .2s}
+.qdel:hover{background:rgba(226,68,68,.3)}
+.fab{position:fixed;bottom:120px;right:calc(50% - 187px + 16px);width:50px;height:50px;background:var(--t);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;color:#fff;cursor:pointer;box-shadow:0 4px 20px rgba(2,128,144,.5);z-index:500;border:none;transition:transform .2s}
+.fab:hover{transform:scale(1.08)}
+.ss{flex:1;overflow-y:auto;padding:16px 20px;background:var(--dk)}
+.sg{background:var(--cd);border:1px solid var(--bd);border-radius:16px;margin-bottom:16px;overflow:hidden}
+.sgl{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--mu);padding:14px 16px 8px}
+.sr{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;border-bottom:1px solid var(--bd);gap:12px}
+.sr:last-child{border-bottom:none}
+.sl{font-size:14px;color:var(--tx)}
+.sd{font-size:11px;color:var(--mu);margin-top:2px}
+.tog{width:44px;height:26px;background:var(--bd);border-radius:13px;position:relative;cursor:pointer;transition:background .25s;flex-shrink:0;border:none}
+.tog.on{background:var(--t)}
+.tog::after{content:'';position:absolute;width:20px;height:20px;background:#fff;border-radius:50%;top:3px;left:3px;transition:left .25s;box-shadow:0 1px 4px rgba(0,0,0,.3)}
+.tog.on::after{left:21px}
+.msel{display:flex;gap:5px;background:rgba(255,255,255,.05);border-radius:10px;padding:4px}
+.mopt{padding:6px 10px;border-radius:7px;font-size:12px;font-weight:500;color:var(--mu);cursor:pointer;transition:all .2s;border:none;background:transparent;font-family:'DM Sans',sans-serif}
+.mopt.a{background:var(--t);color:#fff}
+.spd{width:110px;accent-color:var(--t)}
+.mbk{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(4px);z-index:999;align-items:flex-end;justify-content:center}
+.mbk.open{display:flex}
+.modal{background:var(--sf);border-radius:24px 24px 0 0;padding:20px;width:100%;max-width:375px;border-top:1px solid var(--bd)}
+.mhdl{width:36px;height:4px;background:var(--bd);border-radius:2px;margin:0 auto 16px}
+.modal h3{font-size:18px;color:var(--tx);margin-bottom:16px}
+.modal input,.modal select,.modal textarea{width:100%;background:var(--cd);border:1px solid var(--bd);color:var(--tx);border-radius:12px;padding:12px 14px;font-size:14px;font-family:'DM Sans',sans-serif;margin-bottom:10px;outline:none;transition:border-color .2s}
+.modal input:focus,.modal select:focus,.modal textarea:focus{border-color:var(--t)}
+.modal select option{background:var(--cd)}
+.modal textarea{resize:none;height:90px;line-height:1.5}
+.mbtns{display:flex;gap:10px;margin-top:6px}
+.bc{flex:1;padding:14px;background:var(--cd);border:1px solid var(--bd);color:var(--tx);border-radius:14px;font-size:15px;cursor:pointer;font-family:'DM Sans',sans-serif}
+.ba{flex:2;padding:14px;background:var(--t);border:none;color:#fff;border-radius:14px;font-size:15px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif}
+.frow{display:flex;gap:7px;flex-wrap:wrap;justify-content:center;margin-top:.6rem;max-width:420px}
+.fp{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);border-radius:20px;padding:5px 12px;font-size:11px;color:var(--mu)}
+.fp .d{width:6px;height:6px;border-radius:50%;background:var(--t)}
+.toast{position:fixed;bottom:140px;left:50%;transform:translateX(-50%) translateY(16px);background:#182535;border:1px solid var(--t);color:var(--tx);padding:9px 20px;border-radius:30px;font-size:13px;opacity:0;transition:all .3s;pointer-events:none;z-index:9999;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+<div class="hdr">
+  <div class="badge">NovaSpark Technologies · Release 1 Prototype</div>
+  <h1>Avengers <span>Assembly</span></h1>
+  <p>Interactive mobile app prototype · CPSC8820-01 Spring 2026 · AtlasSoft, Inc.</p>
+</div>
+<div class="pwrap">
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="screen active" id="sc-home">
+      <div class="sbar"><span>9:41</span><div class="sbr"><span>●●●</span><span>WiFi</span><span style="color:#4ecdc4">▮</span></div></div>
+      <div class="sbg"><canvas class="sbc" id="slideCanvas"></canvas><div class="sbo"></div>
+        <div class="sbn">
+          <div class="scat" id="slideCat">National Parks</div>
+          <div class="sq" id="slideQ">"In every walk with nature, one receives far more than he seeks."</div>
+          <div class="sa" id="slideA">John Muir</div>
+        </div>
+      </div>
+      <div class="dots" id="dotsC"></div>
+      <div class="ctrls">
+        <button class="cb" id="bPrev">‹</button>
+        <button class="cb" id="bPP">⏸</button>
+        <div class="mlbl"><strong id="mTxt">Sequential</strong>Display Mode</div>
+        <button class="cb" id="bNext">›</button>
+        <button class="cb" id="bShuffle">⇄</button>
+      </div>
+    </div>
+    <div class="screen" id="sc-library">
+      <div class="shdr"><div class="stitle">Library</div><div class="ssub">Manage your photos &amp; quotes</div></div>
+      <div class="tabs">
+        <div class="tab a" onclick="switchTab('photos',this)">📷 Photos</div>
+        <div class="tab" onclick="switchTab('quotes',this)">💬 Quotes</div>
+      </div>
+      <div class="ls" id="libC"></div>
+    </div>
+    <div class="screen" id="sc-settings">
+      <div class="shdr"><div class="stitle">Settings</div><div class="ssub">Customize your experience</div></div>
+      <div class="ss">
+        <div class="sg"><div class="sgl">Display Mode</div>
+          <div class="sr"><div><div class="sl">Slideshow Mode</div><div class="sd">How content advances</div></div>
+            <div class="msel"><button class="mopt a" onclick="setMode('Sequential',this)">Seq</button><button class="mopt" onclick="setMode('Random',this)">Rand</button><button class="mopt" onclick="setMode('Fixed',this)">Fixed</button></div>
+          </div></div>
+        <div class="sg"><div class="sgl">Timing</div>
+          <div class="sr"><div><div class="sl">Quote Speed</div><div class="sd" id="qsl">5 seconds per slide</div></div><input type="range" class="spd" min="2" max="20" value="5" step="1" oninput="updS('q',this.value)"></div>
+          <div class="sr"><div><div class="sl">Photo Speed</div><div class="sd" id="psl">8 seconds per slide</div></div><input type="range" class="spd" min="5" max="60" value="8" step="1" oninput="updS('p',this.value)"></div>
+        </div>
+        <div class="sg"><div class="sgl">Content</div>
+          <div class="sr"><div><div class="sl">Auto-Advance</div><div class="sd">Cycle slides automatically</div></div><button class="tog on" id="tAuto" onclick="togA()"></button></div>
+          <div class="sr"><div><div class="sl">Daily Reminder</div><div class="sd">Morning inspiration notification</div></div><button class="tog" onclick="this.classList.toggle('on')"></button></div>
+          <div class="sr"><div><div class="sl">Sync Categories</div><div class="sd">Match photo &amp; quote category</div></div><button class="tog on" onclick="this.classList.toggle('on')"></button></div>
+        </div>
+        <div class="sg"><div class="sgl">Storage</div>
+          <div class="sr"><div><div class="sl">Database</div><div class="sd">SQLite on-device · Fully offline</div></div><span style="font-size:12px;color:var(--mu)">Local</span></div>
+          <div class="sr"><div><div class="sl">Storage Used</div><div class="sd">Photos &amp; quotes</div></div><span style="font-size:13px;color:var(--t);font-weight:600">2.4 MB</span></div>
+        </div>
+      </div>
+    </div>
+    <nav class="bnav">
+      <div class="ni a" onclick="showScr('home',this)"><div class="ni-ic">▶</div><span>Slideshow</span></div>
+      <div class="ni" onclick="showScr('library',this)"><div class="ni-ic">☰</div><span>Library</span></div>
+      <div class="ni" onclick="showScr('settings',this)"><div class="ni-ic">⚙</div><span>Settings</span></div>
+    </nav>
+  </div>
+  <div class="frow">
+    <div class="fp"><div class="d"></div>CRUD Operations</div>
+    <div class="fp"><div class="d"></div>3 Display Modes</div>
+    <div class="fp"><div class="d"></div>SQLite On-Device</div>
+    <div class="fp"><div class="d"></div>5 Photo Categories</div>
+    <div class="fp"><div class="d"></div>Fully Offline</div>
+  </div>
+</div>
+<button class="fab" id="fab" style="display:none" onclick="openM()">+</button>
+<div class="mbk" id="modal">
+  <div class="modal">
+    <div class="mhdl"></div>
+    <h3>Add New Quote</h3>
+    <select id="ncat"><option>Famous People</option><option>Inspirational</option><option>Humor</option><option>Romance</option><option>Personal</option></select>
+    <textarea id="nq" placeholder="Enter your quote here..."></textarea>
+    <input id="na" type="text" placeholder="Author name (optional)">
+    <div class="mbtns"><button class="bc" onclick="closeM()">Cancel</button><button class="ba" onclick="addQ()">Add Quote</button></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+/* ── Canvas Landscape Engine ── */
+function paint(canvas,type){
+  const ctx=canvas.getContext('2d'),W=canvas.width,H=canvas.height;
+  ctx.clearRect(0,0,W,H);
+  const rnd=(a,b)=>Math.random()*(b-a)+a;
+
+  if(type==='parks'){
+    // Sky
+    const sk=ctx.createLinearGradient(0,0,0,H*.6);
+    sk.addColorStop(0,'#0a1628');sk.addColorStop(.4,'#1a3a6e');sk.addColorStop(.7,'#2e6fa0');sk.addColorStop(1,'#5fa8c8');
+    ctx.fillStyle=sk;ctx.fillRect(0,0,W,H);
+    // Stars
+    ctx.fillStyle='rgba(255,255,255,0.85)';
+    for(let i=0;i<55;i++){ctx.beginPath();ctx.arc(rnd(0,W),rnd(0,H*.38),rnd(.4,1.4),0,Math.PI*2);ctx.fill();}
+    // Sun glow
+    const sg=ctx.createRadialGradient(W*.72,H*.22,0,W*.72,H*.22,W*.18);
+    sg.addColorStop(0,'rgba(255,220,120,.4)');sg.addColorStop(1,'transparent');
+    ctx.fillStyle=sg;ctx.fillRect(0,0,W,H);
+    ctx.fillStyle='#ffe8a0';ctx.beginPath();ctx.arc(W*.72,H*.22,14,0,Math.PI*2);ctx.fill();
+    // Back mountains
+    const m=(pts,c)=>{ctx.fillStyle=c;ctx.beginPath();ctx.moveTo(0,H);pts.forEach(([x,y])=>ctx.lineTo(x,y));ctx.lineTo(W,H);ctx.closePath();ctx.fill();};
+    m([[0,H*.52],[W*.12,H*.35],[W*.22,H*.42],[W*.35,H*.28],[W*.5,H*.4],[W*.62,H*.3],[W*.75,H*.25],[W*.88,H*.35],[W,H*.48]],'rgba(40,60,100,.65)');
+    m([[0,H*.62],[W*.1,H*.48],[W*.25,H*.38],[W*.4,H*.5],[W*.55,H*.35],[W*.7,H*.44],[W*.85,H*.38],[W,H*.55]],'rgba(30,70,60,.7)');
+    // Valley walls
+    ctx.fillStyle='#1a3d28';ctx.beginPath();ctx.moveTo(0,H);ctx.lineTo(0,H*.55);ctx.bezierCurveTo(W*.05,H*.4,W*.12,H*.52,W*.18,H*.7);ctx.lineTo(W*.18,H);ctx.closePath();ctx.fill();
+    ctx.fillStyle='#234d32';ctx.beginPath();ctx.moveTo(W,H);ctx.lineTo(W,H*.5);ctx.bezierCurveTo(W*.9,H*.38,W*.82,H*.55,W*.78,H*.7);ctx.lineTo(W*.78,H);ctx.closePath();ctx.fill();
+    // Pines
+    const pine=(x,y,h)=>{ctx.fillStyle='#0d1e12';for(let t=0;t<3;t++){const tw=h*(.55-t*.12),th=h*.38,ty=y-h+h*t*.3;ctx.beginPath();ctx.moveTo(x,ty);ctx.lineTo(x-tw/2,ty+th);ctx.lineTo(x+tw/2,ty+th);ctx.closePath();ctx.fill();}ctx.fillRect(x-h*.05,y-h*.22,h*.1,h*.25);};
+    for(let i=0;i<8;i++)pine(rnd(0,W*.22),H*.78+rnd(-10,10),rnd(35,55));
+    for(let i=0;i<8;i++)pine(rnd(W*.78,W),H*.75+rnd(-10,10),rnd(35,55));
+    // River
+    const rv=ctx.createLinearGradient(0,H*.7,0,H);rv.addColorStop(0,'#1a4060');rv.addColorStop(1,'#0d2535');
+    ctx.fillStyle=rv;ctx.beginPath();ctx.moveTo(W*.3,H);ctx.lineTo(W*.28,H*.7);ctx.bezierCurveTo(W*.38,H*.65,W*.5,H*.68,W*.55,H*.65);ctx.lineTo(W*.6,H);ctx.closePath();ctx.fill();
+    // Ground
+    const gn=ctx.createLinearGradient(0,H*.75,0,H);gn.addColorStop(0,'#1e3a1a');gn.addColorStop(1,'#0f1e0d');
+    ctx.fillStyle=gn;ctx.beginPath();ctx.moveTo(0,H);ctx.lineTo(0,H*.8);ctx.bezierCurveTo(W*.25,H*.75,W*.75,H*.78,W,H*.76);ctx.lineTo(W,H);ctx.closePath();ctx.fill();
+  }
+  else if(type==='nature'){
+    const sk=ctx.createLinearGradient(0,0,0,H);sk.addColorStop(0,'#1a1008');sk.addColorStop(.3,'#3d2210');sk.addColorStop(.6,'#6b4020');sk.addColorStop(1,'#1a2a10');
+    ctx.fillStyle=sk;ctx.fillRect(0,0,W,H);
+    for(let i=0;i<8;i++){const a=(i/8)*Math.PI-Math.PI/2;const ry=ctx.createLinearGradient(W*.5,H*.2,W*.5+Math.cos(a)*W,H*.2+Math.sin(a)*H);ry.addColorStop(0,'rgba(255,180,60,.1)');ry.addColorStop(1,'transparent');ctx.fillStyle=ry;ctx.beginPath();ctx.moveTo(W*.5,H*.2);ctx.lineTo(W*.5+Math.cos(a-.15)*W*1.5,H*.2+Math.sin(a-.15)*H*1.5);ctx.lineTo(W*.5+Math.cos(a+.15)*W*1.5,H*.2+Math.sin(a+.15)*H*1.5);ctx.closePath();ctx.fill();}
+    ctx.fillStyle='rgba(255,200,80,.9)';ctx.beginPath();ctx.arc(W*.5,H*.2,18,0,Math.PI*2);ctx.fill();
+    const sunG=ctx.createRadialGradient(W*.5,H*.2,0,W*.5,H*.2,W*.28);sunG.addColorStop(0,'rgba(255,180,60,.28)');sunG.addColorStop(1,'transparent');ctx.fillStyle=sunG;ctx.fillRect(0,0,W,H);
+    const tr=(x,h,dk)=>{const c=dk?`rgba(10,20,5,.88)`:`rgba(20,50,12,.78)`;ctx.fillStyle='rgba(8,5,2,.9)';ctx.fillRect(x-4,H-h*.28,8,h*.32);ctx.fillStyle=c;ctx.beginPath();ctx.ellipse(x,H-h*.18,h*.18,h*.42,0,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.ellipse(x-h*.1,H-h*.28,h*.14,h*.32,-.2,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.ellipse(x+h*.1,H-h*.26,h*.12,h*.3,.2,0,Math.PI*2);ctx.fill();};
+    for(let i=0;i<5;i++)tr(rnd(0,W),rnd(180,240),true);
+    for(let i=0;i<10;i++)tr(rnd(0,W),rnd(110,175),false);
+    for(let i=0;i<8;i++)tr(rnd(0,W),rnd(70,115),false);
+    const fl=ctx.createLinearGradient(0,H*.85,0,H);fl.addColorStop(0,'#0a1a08');fl.addColorStop(1,'#040d03');ctx.fillStyle=fl;ctx.fillRect(0,H*.85,W,H*.15);
+    for(let i=0;i<5;i++){const my=H*(0.42+i*.11);const ms=ctx.createLinearGradient(0,my,0,my+45);ms.addColorStop(0,'transparent');ms.addColorStop(.5,`rgba(255,200,150,${.07-i*.012})`);ms.addColorStop(1,'transparent');ctx.fillStyle=ms;ctx.fillRect(0,my,W,45);}
+  }
+  else if(type==='wildlife'){
+    const sk=ctx.createLinearGradient(0,0,0,H*.55);sk.addColorStop(0,'#0d0510');sk.addColorStop(.2,'#2d0a1a');sk.addColorStop(.5,'#8b2500');sk.addColorStop(.8,'#d4520a');sk.addColorStop(1,'#f08030');ctx.fillStyle=sk;ctx.fillRect(0,0,W,H*.55);
+    const sunG=ctx.createRadialGradient(W*.5,H*.48,0,W*.5,H*.48,W*.3);sunG.addColorStop(0,'rgba(255,200,80,.85)');sunG.addColorStop(.12,'rgba(255,140,30,.45)');sunG.addColorStop(1,'transparent');ctx.fillStyle=sunG;ctx.fillRect(0,0,W,H);
+    ctx.fillStyle='#ffcc50';ctx.beginPath();ctx.arc(W*.5,H*.47,20,0,Math.PI*2);ctx.fill();
+    const gn=ctx.createLinearGradient(0,H*.5,0,H);gn.addColorStop(0,'#4a2800');gn.addColorStop(.3,'#2d1800');gn.addColorStop(1,'#120a00');ctx.fillStyle=gn;ctx.fillRect(0,H*.5,W,H*.5);
+    const ac=(x,h)=>{ctx.fillStyle='rgba(5,3,0,.95)';ctx.fillRect(x-3,H*.5,6,h*.38);ctx.beginPath();ctx.ellipse(x,H*.5-h*.04,h*.32,h*.08,0,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.ellipse(x-h*.18,H*.5-h*.07,h*.16,h*.06,-.1,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.ellipse(x+h*.16,H*.5-h*.06,h*.14,h*.05,.1,0,Math.PI*2);ctx.fill();};
+    [W*.15,W*.68,W*.84,W*.04].forEach((x,i)=>ac(x,85+i*10));
+    ctx.fillStyle='rgba(0,0,0,.75)';for(let i=0;i<80;i++){const gx=rnd(0,W),gy=H*.5+rnd(0,H*.38),gh=rnd(8,26);ctx.beginPath();ctx.moveTo(gx,gy);ctx.quadraticCurveTo(gx+rnd(-6,6),gy-gh,gx+rnd(-3,3),gy-gh-5);ctx.lineTo(gx+1,gy);ctx.closePath();ctx.fill();}
+  }
+  else if(type==='landscape'){
+    const sk=ctx.createLinearGradient(0,0,0,H*.5);sk.addColorStop(0,'#050a1a');sk.addColorStop(.3,'#0d2040');sk.addColorStop(.6,'#1a4080');sk.addColorStop(1,'#3060a0');ctx.fillStyle=sk;ctx.fillRect(0,0,W,H*.5);
+    ctx.fillStyle='rgba(200,220,255,.9)';for(let i=0;i<80;i++){ctx.beginPath();ctx.arc(rnd(0,W),rnd(0,H*.42),rnd(.4,1.2),0,Math.PI*2);ctx.fill();}
+    const mt=(pts,c)=>{ctx.fillStyle=c;ctx.beginPath();ctx.moveTo(0,H);pts.forEach(([x,y])=>ctx.lineTo(x,y));ctx.lineTo(W,H);ctx.closePath();ctx.fill();};
+    mt([[0,H*.65],[W*.1,H*.38],[W*.2,H*.55],[W*.32,H*.28],[W*.45,H*.48],[W*.56,H*.22],[W*.68,H*.45],[W*.78,H*.32],[W*.9,H*.5],[W,H*.6]],'#0d1e35');
+    ctx.fillStyle='rgba(220,235,255,.85)';[[W*.32,H*.28,16],[W*.56,H*.22,20],[W*.78,H*.32,14]].forEach(([px,py,s])=>{ctx.beginPath();ctx.moveTo(px,py);ctx.lineTo(px-s,py+s*1.4);ctx.lineTo(px+s,py+s*1.4);ctx.closePath();ctx.fill();});
+    const lk=ctx.createLinearGradient(0,H*.5,0,H);lk.addColorStop(0,'#1a3060');lk.addColorStop(.4,'#0d2040');lk.addColorStop(1,'#070e1a');ctx.fillStyle=lk;ctx.fillRect(0,H*.5,W,H*.5);
+    ctx.strokeStyle='rgba(80,140,200,.15)';for(let r=0;r<5;r++){ctx.beginPath();ctx.ellipse(W*.5,H*.65+r*18,W*.35+r*8,4,0,0,Math.PI*2);ctx.lineWidth=1;ctx.stroke();}
+    ctx.save();ctx.globalAlpha=.3;ctx.translate(0,H);ctx.scale(1,-1);mt([[0,H*.65],[W*.1,H*.38],[W*.2,H*.55],[W*.32,H*.28],[W*.45,H*.48],[W*.56,H*.22],[W*.68,H*.45],[W*.78,H*.32],[W*.9,H*.5],[W,H*.6]],'#1a3060');ctx.restore();
+    const pn=(x,h)=>{ctx.fillStyle='rgba(5,10,5,.96)';for(let l=0;l<3;l++){const tw=h*(.5-l*.1),ty=H*.5-h+h*l*.3;ctx.beginPath();ctx.moveTo(x,ty);ctx.lineTo(x-tw,ty+h*.35);ctx.lineTo(x+tw,ty+h*.35);ctx.closePath();ctx.fill();}};
+    for(let i=0;i<12;i++)pn(i*(W/12)+rnd(-5,5),rnd(45,75));for(let i=0;i<10;i++)pn(i*(W/10)+rnd(-8,8)+W*.05,rnd(30,55));
+  }
+  else if(type==='personal'){
+    const bg=ctx.createLinearGradient(0,0,0,H);bg.addColorStop(0,'#1a0808');bg.addColorStop(.4,'#3d0f0f');bg.addColorStop(.7,'#5a1a0a');bg.addColorStop(1,'#0d0505');ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+    const cs=['255,180,60','255,120,40','255,200,100','200,80,40','255,160,80'];
+    for(let i=0;i<35;i++){const c=cs[Math.floor(rnd(0,cs.length))],x=rnd(0,W),y=rnd(0,H),r=rnd(20,80),a=rnd(.03,.12);const g=ctx.createRadialGradient(x,y,0,x,y,r);g.addColorStop(0,`rgba(${c},${a})`);g.addColorStop(1,'transparent');ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();}
+    const vg=ctx.createRadialGradient(W*.5,H*.5,H*.1,W*.5,H*.5,H*.75);vg.addColorStop(0,'transparent');vg.addColorStop(1,'rgba(0,0,0,.65)');ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
+  }
+  else if(type==='romance'){
+    const bg=ctx.createLinearGradient(0,0,0,H);bg.addColorStop(0,'#08020a');bg.addColorStop(.3,'#280510');bg.addColorStop(.6,'#4a0818');bg.addColorStop(1,'#0a0305');ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+    const gl=ctx.createRadialGradient(W*.75,H*.15,0,W*.75,H*.15,W*.55);gl.addColorStop(0,'rgba(255,180,60,.28)');gl.addColorStop(1,'transparent');ctx.fillStyle=gl;ctx.fillRect(0,0,W,H);
+    for(let i=0;i<25;i++){const x=rnd(0,W),y=rnd(0,H),r=rnd(15,65);const g=ctx.createRadialGradient(x,y,0,x,y,r);g.addColorStop(0,`rgba(180,20,50,${rnd(.05,.14)})`);g.addColorStop(1,'transparent');ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();}
+    const vg=ctx.createRadialGradient(W*.5,H*.5,H*.15,W*.5,H*.5,H*.7);vg.addColorStop(0,'transparent');vg.addColorStop(1,'rgba(0,0,0,.7)');ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
+  }
+  else{
+    const fb=ctx.createLinearGradient(0,0,0,H);fb.addColorStop(0,'#0d2030');fb.addColorStop(.4,'#1a3a6e');fb.addColorStop(1,'#0a1520');ctx.fillStyle=fb;ctx.fillRect(0,0,W,H);
+    ctx.fillStyle='rgba(200,230,255,.8)';for(let i=0;i<60;i++){ctx.beginPath();ctx.arc(rnd(0,W),rnd(0,H*.5),rnd(.4,1.2),0,Math.PI*2);ctx.fill();}
+  }
+}
+
+/* ── Cache ── */
+const CACHE={};
+function getC(type,W,H){
+  const k=`${type}-${W}-${H}`;
+  if(!CACHE[k]){const c=document.createElement('canvas');c.width=W;c.height=H;paint(c,type);CACHE[k]=c;}
+  return CACHE[k];
+}
+
+/* ── Data ── */
+const SLIDES=[
+  {cat:"National Parks",type:"parks",      quote:"In every walk with nature, one receives far more than he seeks.",                  author:"John Muir"},
+  {cat:"Inspirational", type:"landscape",  quote:"The only way to do great work is to love what you do.",                            author:"Steve Jobs"},
+  {cat:"Famous People", type:"personal",   quote:"Ask not what your country can do for you — ask what you can do for your country.", author:"John F. Kennedy"},
+  {cat:"Nature",        type:"nature",     quote:"Look deep into nature, and then you will understand everything better.",           author:"Albert Einstein"},
+  {cat:"Romance",       type:"romance",    quote:"The best thing to hold onto in life is each other.",                              author:"Audrey Hepburn"},
+  {cat:"Wildlife",      type:"wildlife",   quote:"Until one has loved an animal, a part of one's soul remains unawakened.",         author:"Anatole France"},
+  {cat:"Famous People", type:"landscape",  quote:"I have a dream that my children will live in a nation where they will not be judged by the color of their skin.", author:"Martin Luther King Jr."},
+  {cat:"Inspirational", type:"parks",      quote:"It does not matter how slowly you go as long as you do not stop.",                author:"Confucius"},
+];
+const PHOTOS=[
+  {cat:"National Parks",type:"parks",   count:12},
+  {cat:"Nature",        type:"nature",  count:8 },
+  {cat:"Wildlife",      type:"wildlife",count:6 },
+  {cat:"Landscape",     type:"landscape",count:10},
+  {cat:"Personal",      type:"personal",count:4 },
+];
+let QUOTES=[
+  {id:1,cat:"Famous People", text:"Ask not what your country can do for you.",         author:"John F. Kennedy"},
+  {id:2,cat:"Famous People", text:"I have a dream.",                                   author:"Martin Luther King Jr."},
+  {id:3,cat:"Inspirational", text:"The only way to do great work is to love what you do.", author:"Steve Jobs"},
+  {id:4,cat:"Inspirational", text:"It does not matter how slowly you go as long as you do not stop.", author:"Confucius"},
+  {id:5,cat:"Humor",         text:"I am so clever that sometimes I don't understand a single word of what I am saying.", author:"Oscar Wilde"},
+  {id:6,cat:"Romance",       text:"The best thing to hold onto in life is each other.", author:"Audrey Hepburn"},
+  {id:7,cat:"Nature",        text:"Look deep into nature, and you will understand everything better.", author:"Albert Einstein"},
+  {id:8,cat:"Personal",      text:"Every day is a second chance.",                     author:"You"},
+];
+let nid=9,cur=0,play=true,mode='Sequential',tmr=null,qsp=5,ctab='photos';
+
+/* ── Render slide ── */
+function renderSlide(){
+  const s=SLIDES[cur],sc=document.getElementById('slideCanvas');
+  const W=sc.clientWidth||375,H=sc.clientHeight||520;
+  sc.width=W;sc.height=H;
+  sc.getContext('2d').drawImage(getC(s.type,W,H),0,0,W,H);
+  document.getElementById('slideCat').textContent=s.cat;
+  document.getElementById('slideQ').textContent=`"${s.quote}"`;
+  document.getElementById('slideA').textContent=s.author;
+  document.getElementById('dotsC').innerHTML=SLIDES.map((_,i)=>`<div class="dot${i===cur?' a':''}" onclick="goTo(${i})"></div>`).join('');
+}
+function goTo(i){cur=(i+SLIDES.length)%SLIDES.length;renderSlide();}
+function startT(){clearInterval(tmr);if(play&&mode!=='Fixed')tmr=setInterval(()=>{if(mode==='Random')cur=Math.floor(Math.random()*SLIDES.length);else cur=(cur+1)%SLIDES.length;renderSlide();},qsp*1000);}
+document.getElementById('bPrev').onclick=()=>{goTo(cur-1);startT();};
+document.getElementById('bNext').onclick=()=>{goTo(cur+1);startT();};
+document.getElementById('bPP').onclick=function(){play=!play;this.textContent=play?'⏸':'▶';startT();};
+document.getElementById('bShuffle').onclick=function(){this.classList.toggle('on');mode=this.classList.contains('on')?'Random':'Sequential';document.getElementById('mTxt').textContent=mode;document.querySelectorAll('.mopt').forEach(b=>b.classList.toggle('a',b.textContent.trim().startsWith(mode.slice(0,3))));startT();};
+
+/* ── Settings ── */
+function setMode(m,btn){mode=m;document.getElementById('mTxt').textContent=m;document.querySelectorAll('.mopt').forEach(b=>b.classList.remove('a'));btn.classList.add('a');const sh=document.getElementById('bShuffle');if(m==='Random')sh.classList.add('on');else sh.classList.remove('on');startT();toast('Mode: '+m);}
+function togA(){const t=document.getElementById('tAuto');t.classList.toggle('on');play=t.classList.contains('on');document.getElementById('bPP').textContent=play?'⏸':'▶';startT();}
+function updS(t,v){if(t==='q'){qsp=+v;document.getElementById('qsl').textContent=`${v} seconds per slide`;startT();}else document.getElementById('psl').textContent=`${v} seconds per slide`;}
+
+/* ── Navigation ── */
+function showScr(n,el){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById('sc-'+n).classList.add('active');document.querySelectorAll('.ni').forEach(ni=>ni.classList.remove('a'));el.classList.add('a');document.getElementById('fab').style.display=n==='library'?'flex':'none';if(n==='library')renderLib();}
+
+/* ── Library ── */
+function switchTab(t,el){ctab=t;document.querySelectorAll('.tab').forEach(tb=>tb.classList.remove('a'));el.classList.add('a');renderLib();}
+function renderLib(){
+  const c=document.getElementById('libC');
+  if(ctab==='photos'){
+    c.innerHTML=`<div class="slbl">Photo Categories</div><div class="pgrid">${PHOTOS.map(p=>`<div class="pc" onclick="toast('Opening ${p.cat}...')"><canvas id="pc-${p.type}"></canvas><span class="cnt">${p.count}</span><span>${p.cat}</span></div>`).join('')}</div><div class="slbl" style="margin-top:16px">Total: ${PHOTOS.reduce((a,p)=>a+p.count,0)} photos across 5 categories</div>`;
+    requestAnimationFrame(()=>{PHOTOS.forEach(p=>{const el=document.getElementById('pc-'+p.type);if(!el)return;const W=el.clientWidth||160,H=el.clientHeight||90;el.width=W;el.height=H;el.getContext('2d').drawImage(getC(p.type,W,H),0,0,W,H);});});
+  }else{
+    const cats=[...new Set(QUOTES.map(q=>q.cat))];
+    c.innerHTML=cats.map(cat=>`<div class="slbl">${cat}</div>`+QUOTES.filter(q=>q.cat===cat).map(q=>`<div class="qi"><div class="qcat">${q.cat}</div><div class="qtxt">"${q.text}"</div><div class="qauth">${q.author}</div><button class="qdel" onclick="delQ(${q.id})">×</button></div>`).join('')).join('');
+  }
+}
+function delQ(id){QUOTES=QUOTES.filter(q=>q.id!==id);renderLib();toast('Quote deleted');}
+function openM(){document.getElementById('modal').classList.add('open');}
+function closeM(){document.getElementById('modal').classList.remove('open');document.getElementById('nq').value='';document.getElementById('na').value='';}
+function addQ(){const text=document.getElementById('nq').value.trim();if(!text){toast('Please enter a quote');return;}QUOTES.push({id:nid++,cat:document.getElementById('ncat').value,text,author:document.getElementById('na').value.trim()||'Anonymous'});closeM();renderLib();toast('Quote added!');}
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);}
+
+/* ── Init ── */
+window.onload=()=>{
+  renderSlide();startT();
+  const types=['parks','nature','wildlife','landscape','personal','romance'];
+  let i=0;const warm=()=>{if(i<types.length){getC(types[i++],375,520);setTimeout(warm,100);}};setTimeout(warm,600);
+};
+</script>
+</body>
+</html>
